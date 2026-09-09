@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "env": {
-    "VITE_AUTH_BASE_URL": "https://auth-service-zhx8-git-main-karpoora-sundarapandians-projects.vercel.app"
-  }
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://api-gateway-two-nu.vercel.app/auth/:path*"
+    }
+  ]
 }
