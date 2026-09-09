@@ -4,8 +4,17 @@ dist-ssr
 build
 *.local
 *.tsbuildinfo
+.vite/
+
+# Test output
+coverage/
+
+# Local config. Vite also reads .env.development / .env.production, and
+# VITE_AUTH_BASE_URL points at a real deployed service — ignore the whole
+# family and keep only the committed template.
 .env
-.env.*.local
+.env.*
+!.env.example
 
 # Editors
 .vscode/*
