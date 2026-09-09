@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/auth/:path*",
-      "destination": "https://auth-service-zhx8-dg967goni-karpoora-sundarapandians-projects.vercel.app/auth/:path*"
+      "destination": "https://auth-service-zhx8-git-main-karpoora-sundarapandians-projects.vercel.app/auth/:path*"
     }
   ]
 }
