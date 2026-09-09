@@ -7,7 +7,8 @@ export interface AuthUser {
   /** The application this user belongs to. Being a member of the RichMinds
    *  admin app account is what makes someone an administrator. */
   account_id: string | null;
-  org_id: string | null;
+  /** Every account this user may sign in through. */
+  account_ids?: string[];
   /** True when account_id is the admin app account. Every endpoint this
    *  console calls is admin-only, so a non-admin sign-in gets a "not
    *  authorised" screen rather than an empty console. */
@@ -15,13 +16,12 @@ export interface AuthUser {
   created_at?: string | null;
 }
 
+// Account membership lives on `user` and nowhere else — auth-service used to
+// repeat it at this level too, which meant two copies that could disagree.
 export interface TokenResponse {
   access_token: string;
   token_type: string;
   user: AuthUser;
-  /** Echoes the account the login was routed to (auth-service's pluggable
-   *  account registry); null for the default org/tenant login. */
-  account_id?: string | null;
 }
 
 /** This console's own app account. Sent on every sign-in so auth-service knows
