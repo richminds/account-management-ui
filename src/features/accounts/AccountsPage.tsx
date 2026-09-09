@@ -6,8 +6,6 @@ import {
   ExternalLink,
   Loader2,
   Pencil,
-  Plug,
-  PlugZap,
   Plus,
   RefreshCw,
   Search,
@@ -359,17 +357,6 @@ function AccountRow({ account }: { account: AccountRecord }) {
               <Badge variant="secondary" className="shrink-0 text-[9px]">
                 {APP_TYPE_LABELS[account.app_type] ?? account.app_type}
               </Badge>
-              {account.has_login_adapter ? (
-                <Badge variant="success" className="shrink-0 gap-1 text-[9px]">
-                  <PlugZap className="h-2.5 w-2.5" />
-                  login wired
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="shrink-0 gap-1 text-[9px]">
-                  <Plug className="h-2.5 w-2.5" />
-                  no adapter
-                </Badge>
-              )}
               {!account.enabled && (
                 <Badge variant="warning" className="shrink-0 text-[9px]">
                   disabled

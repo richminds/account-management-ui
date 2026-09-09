@@ -66,9 +66,4 @@ export interface AccountRecord {
   created_by: string;
   created_at: string;
   updated_at?: string | null;
-  /** Whether a login adapter is actually wired up for this account in
-   *  auth-service. Registering an application records that it exists; it does
-   *  not by itself teach auth-service how to authenticate that application's
-   *  users. */
-  has_login_adapter: boolean;
 }
