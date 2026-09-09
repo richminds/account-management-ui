@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* Tailwind v4 is CSS-first — there is no tailwind.config.js. Design tokens
+   live in @theme below, and class-based dark mode is opted into explicitly
+   (v4 defaults to prefers-color-scheme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Light theme (default) ─────────────────────────────────────────────── */
+:root {
+  --background: hsl(240 30% 98%);
+  --foreground: hsl(240 25% 11%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 25% 11%);
+
+  --primary: hsl(258 90% 66%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(240 20% 94%);
+  --secondary-foreground: hsl(240 25% 11%);
+
+  --muted: hsl(240 20% 94%);
+  --muted-foreground: hsl(240 12% 46%);
+
+  --destructive: hsl(356 72% 52%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --border: hsl(240 16% 88%);
+  --input: hsl(240 16% 88%);
+  --ring: hsl(258 90% 66%);
+}
+
+/* ── Dark theme ────────────────────────────────────────────────────────── */
+.dark {
+  --background: hsl(245 32% 8%);
+  --foreground: hsl(250 30% 93%);
+
+  --card: hsl(245 28% 12%);
+  --card-foreground: hsl(250 30% 93%);
+
+  --primary: hsl(258 92% 72%);
+  --primary-foreground: hsl(245 32% 8%);
+
+  --secondary: hsl(245 22% 16%);
+  --secondary-foreground: hsl(250 30% 93%);
+
+  --muted: hsl(245 20% 17%);
+  --muted-foreground: hsl(250 14% 65%);
+
+  --destructive: hsl(356 100% 68%);
+  --destructive-foreground: hsl(356 60% 15%);
+
+  --border: hsl(245 24% 22%);
+  --input: hsl(245 24% 22%);
+  --ring: hsl(258 92% 72%);
+}
+
+/* `inline` resolves the var() at use site, so the .dark overrides above win
+   without redeclaring every utility. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand palette, shared with the sibling knowledge-ingest-ui */
+  --color-brand-violet: #8b5cf6;
+  --color-brand-indigo: #6366f1;
+  --color-brand-teal: #2ec28a;
+  --color-brand-amber: #f5a623;
+  --color-brand-red: #ff5d6c;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius-lg: 0.75rem;
+
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-fade-in-slow: fade-in-slow 1s ease-out;
+  --animate-slide-up: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-float-reverse: float 6s ease-in-out infinite reverse;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in-slow {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, hsl(258 90% 66% / 0.12), transparent),
+      radial-gradient(ellipse 700px 400px at 100% 0%, hsl(160 70% 45% / 0.08), transparent);
+    background-attachment: fixed;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
