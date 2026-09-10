@@ -3,16 +3,20 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
-// Standalone admin console for auth-service. Talks to it directly — no
-// gateway/BFF in front.
+// Admin console for auth-service — reached THROUGH the API gateway, never
+// directly. The gateway is the only thing on the platform that talks to
+// auth-service, in development as well as when deployed (vercel.json rewrites
+// /auth/* to the gateway too), and that symmetry is the point: a dev server
+// that bypassed it would exercise a path production does not have.
 //
 // Two ways to choose the backend, and they are not interchangeable:
 //
-//   AUTH_PROXY_TARGET    where this dev server forwards /auth/* (default: a
-//                        local auth-service on :8100). The browser only ever
-//                        talks to this dev server, so the hop to the target
-//                        is server-side and CORS does not apply. Use this to
-//                        develop against a DEPLOYED auth-service.
+//   GATEWAY_PROXY_TARGET where this dev server forwards /auth/* (default: a
+//                        local API gateway on :8000, which routes /auth to
+//                        auth-service). The browser only ever talks to this
+//                        dev server, so the hop to the target is server-side
+//                        and CORS does not apply. Point it at a deployed
+//                        gateway to develop against real accounts.
 //
 //   VITE_AUTH_BASE_URL   baked into the bundle as an absolute base URL, so
 //                        the browser calls that host directly. Needed when
@@ -23,7 +27,10 @@ import path from "node:path";
 // Port 5176 keeps it clear of the sibling knowledge-ingest-ui (:5174).
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const authTarget = env.AUTH_PROXY_TARGET || "http://localhost:8100";
+  // AUTH_PROXY_TARGET is still honoured so an existing .env keeps working,
+  // but it now names a GATEWAY rather than auth-service itself.
+  const authTarget =
+    env.GATEWAY_PROXY_TARGET || env.AUTH_PROXY_TARGET || "http://localhost:8000";
 
   return {
     plugins: [react(), tailwindcss()],

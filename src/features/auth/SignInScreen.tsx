@@ -22,9 +22,9 @@ import { useAuth } from "./auth-context";
 // card) — rebuilt in Tailwind, pointed at auth-service.
 //
 // Sign-in only: this console administers accounts, it does not create the
-// staff users who administer them. Platform staff are defined by
-// auth-service's AUTH_PORTLESS_EMAILS allowlist, and sign up through the
-// product they already use.
+// admin users who administer them. Administrators are defined by membership
+// of auth-service's admin app account (AUTH_ADMIN_ACCOUNT_ID), and sign up
+// through the product they already use.
 const FEATURES = [
   {
     icon: Building2,
