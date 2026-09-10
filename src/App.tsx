@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/auth-context";
+import { selectedAccount } from "@/features/auth/auth-types";
 import { SignInScreen } from "@/features/auth/SignInScreen";
 import { AccountsPage } from "@/features/accounts/AccountsPage";
 
@@ -54,7 +55,7 @@ export default function App() {
               <span className="text-[10px] leading-tight text-muted-foreground">{user.email}</span>
             </div>
             <Badge variant="outline" className="font-mono text-[10px]">
-              {user.account_id ?? "—"}
+              {selectedAccount(user)?.name ?? "—"}
             </Badge>
             <Button
               variant="ghost"

@@ -36,7 +36,8 @@ import {
 export function AccountsPage() {
   const accounts = useAccounts();
   const createAccount = useCreateAccount();
-  const [accountId, setAccountId] = useState("");
+  // No account_id field: auth-service mints the UUID, so there is nothing for
+  // an operator to choose here — they copy it out of the created row instead.
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [appType, setAppType] = useState<AppType>("web");
@@ -50,25 +51,24 @@ export function AccountsPage() {
       (a) =>
         a.name.toLowerCase().includes(q) ||
         a.account_id.toLowerCase().includes(q) ||
+        (a.legacy_account_id ?? "").toLowerCase().includes(q) ||
         a.description.toLowerCase().includes(q) ||
         a.app_url.toLowerCase().includes(q) ||
         a.app_type.toLowerCase().includes(q),
     );
   }, [accounts.data, filter]);
 
-  const canCreate = Boolean(accountId.trim() && name.trim()) && !createAccount.isPending;
+  const canCreate = Boolean(name.trim()) && !createAccount.isPending;
 
   async function handleCreate() {
     if (!canCreate) return;
     try {
       await createAccount.mutateAsync({
-        account_id: accountId.trim(),
         name: name.trim(),
         description: description.trim(),
         app_type: appType,
         app_url: appUrl.trim(),
       });
-      setAccountId("");
       setName("");
       setDescription("");
       setAppType("web");
@@ -109,12 +109,6 @@ export function AccountsPage() {
       <Card>
         <CardContent className="space-y-2 pb-4 pt-4">
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-              placeholder="account-id"
-              className="h-9 w-full rounded-md border border-border bg-background px-3 font-mono text-sm placeholder:font-sans placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-52"
-            />
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}

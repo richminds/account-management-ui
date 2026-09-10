@@ -1,19 +1,33 @@
 // Mirrors auth-service's Pydantic DTOs (features/schemas.py).
 
+/** One app account a user may sign in through. */
+export interface LoginAccount {
+  account_id: string;
+  name: string;
+  /** True on the account this session's token is scoped to. This replaced the
+   *  flat `AuthUser.account_id`: `accounts` says which applications the user
+   *  may use, and this says which one they are currently using. */
+  selected: boolean;
+}
+
 export interface AuthUser {
   user_id: string;
   email: string;
   name: string;
-  /** The application this user belongs to. Being a member of the RichMinds
-   *  admin app account is what makes someone an administrator. */
-  account_id: string | null;
-  /** Every account this user may sign in through. */
-  account_ids?: string[];
-  /** True when account_id is the admin app account. Every endpoint this
-   *  console calls is admin-only, so a non-admin sign-in gets a "not
+  /** Every application this user may sign in through, with the active one
+   *  marked. The only account information in the response — auth-service no
+   *  longer repeats it as flat `account_id`/`account_ids` fields. */
+  accounts: LoginAccount[];
+  /** True when the scoped account is the admin app account. Every endpoint
+   *  this console calls is admin-only, so a non-admin sign-in gets a "not
    *  authorised" screen rather than an empty console. */
   is_admin: boolean;
   created_at?: string | null;
+}
+
+/** The account a session is scoped to — the entry auth-service marked. */
+export function selectedAccount(user: AuthUser): LoginAccount | undefined {
+  return user.accounts?.find((a) => a.selected);
 }
 
 // Account membership lives on `user` and nowhere else — auth-service used to
@@ -26,8 +40,15 @@ export interface TokenResponse {
 
 /** This console's own app account. Sent on every sign-in so auth-service knows
  *  which application the login is for, and can refuse a user who belongs to a
- *  different one. Must match auth-service's AUTH_ADMIN_ACCOUNT_ID. */
-export const ADMIN_ACCOUNT_ID = "richminds";
+ *  different one. Must match auth-service's AUTH_ADMIN_ACCOUNT_ID.
+ *
+ *  A UUID, not the old "richminds" slug — account IDs are generated now. This
+ *  particular one is DERIVED from that slug (auth-service
+ *  features/account_ids.py) rather than random, precisely so this constant can
+ *  exist: the admin account is created at service startup, and a random ID
+ *  would be unknowable to this console until an operator read it out of the
+ *  database. */
+export const ADMIN_ACCOUNT_ID = "328dc8a2-c30c-5715-920f-21b963b5ce39";
 
 export interface SignInRequest {
   email: string;
@@ -55,7 +76,13 @@ export const APP_TYPE_LABELS: Record<AppType, string> = {
 };
 
 export interface AccountRecord {
+  /** UUID minted by auth-service — never chosen by the caller. This is the
+   *  value the application sends at login, so it is what an operator copies
+   *  into that application's configuration. */
   account_id: string;
+  /** The slug this account used before IDs became UUIDs, for tracing a
+   *  migrated record back to its old identity. Never used to sign in. */
+  legacy_account_id?: string;
   name: string;
   description: string;
   app_type: AppType;

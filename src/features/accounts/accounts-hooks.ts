@@ -12,7 +12,6 @@ export function useCreateAccount() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: {
-      account_id: string;
       name: string;
       description?: string;
       app_type?: AppType;
