@@ -4,6 +4,10 @@
     {
       "source": "/auth/:path*",
       "destination": "https://api-gateway-two-nu.vercel.app/auth/:path*"
+    },
+    {
+      "source": "/((?!auth/|v1/).*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/auth-context";
 import { selectedAccount } from "@/features/auth/auth-types";
-import { SignInScreen } from "@/features/auth/SignInScreen";
+import { AuthScreen, readResetToken } from "@/features/auth/AuthScreen";
 import { AccountsPage } from "@/features/accounts/AccountsPage";
 
 const THEME_KEY = "account-management-theme";
@@ -20,11 +20,20 @@ function getInitialTheme(): "light" | "dark" {
 export default function App() {
   const [theme, setTheme] = useState<"light" | "dark">(getInitialTheme);
   const { user, loading, signOut } = useAuth();
+  // Read once on mount, not per render: AuthScreen strips the parameter from
+  // the URL after a reset, and re-reading would then flip the screen away
+  // mid-flow.
+  const [resetToken] = useState(readResetToken);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  // Before the session check on purpose: a reset link is just as likely to be
+  // opened by someone who still has a live session (that is often WHY they are
+  // resetting), and bouncing them to the console would strand the link.
+  if (resetToken) return <AuthScreen initialToken={resetToken} />;
 
   if (loading) {
     return (
@@ -36,7 +45,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <SignInScreen />;
+  if (!user) return <AuthScreen />;
 
   return (
     <div className="min-h-full">

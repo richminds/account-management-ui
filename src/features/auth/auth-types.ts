@@ -94,3 +94,38 @@ export interface AccountRecord {
   created_at: string;
   updated_at?: string | null;
 }
+
+// ───────────────────────────────────────────────────────── password reset
+
+/** POST /auth/forgot-password.
+ *
+ *  `account_id` is REQUIRED by auth-service, unlike makemerich's version of
+ *  this flow. Users there are keyed on (email, account_id) with a password
+ *  hash per record, so the address alone doesn't say which password is being
+ *  reset. This console always sends its own ADMIN_ACCOUNT_ID, so a reset
+ *  started here only ever touches the caller's admin record. */
+export interface ForgotPasswordRequest {
+  email: string;
+  account_id: string;
+}
+
+export interface ForgotPasswordResponse {
+  /** Deliberately identical whether or not the email is registered — the
+   *  endpoint must not be usable to enumerate addresses, so the UI shows this
+   *  same confirmation either way. */
+  message: string;
+  /** Development only: the raw token, returned when auth-service has no SMTP
+   *  configured AND AUTH_EXPOSE_RESET_TOKEN is on. Never present in
+   *  production; surfaced in the UI so the flow is testable without a mail
+   *  server. */
+  debug_token?: string | null;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
