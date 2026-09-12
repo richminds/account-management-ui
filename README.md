@@ -39,9 +39,11 @@ cd ../auth-service && python run.py
 npm run dev
 ```
 
-Sign in with a user who belongs to auth-service's admin app account
-(`AUTH_ADMIN_ACCOUNT_ID`). Every endpoint this console calls is admin-only, so
-a non-admin sign-in gets an explanatory screen rather than an empty console.
+Sign in with a user who belongs to auth-service's admin app account — the one
+whose `app_type` is `admin`, named by `VITE_ADMIN_ACCOUNT_ID` in this
+console's `.env` (see `.env.example`; auth-service itself has no setting for
+it). Every endpoint this console calls is admin-only, so a non-admin sign-in
+gets an explanatory screen rather than an empty console.
 
 > **Local dev writes to whatever auth-service you point at.** Leave
 > `VITE_AUTH_BASE_URL` unset and the Vite proxy targets `localhost:8100`. Set

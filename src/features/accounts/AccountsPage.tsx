@@ -19,8 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  APP_TYPES,
   APP_TYPE_LABELS,
+  ASSIGNABLE_APP_TYPES,
   type AccountRecord,
   type AppType,
 } from "@/features/auth/auth-types";
@@ -124,7 +124,7 @@ export function AccountsPage() {
               aria-label="Application type"
               className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-44"
             >
-              {APP_TYPES.map((t) => (
+              {ASSIGNABLE_APP_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {APP_TYPE_LABELS[t]}
                 </option>
@@ -224,6 +224,10 @@ function AccountRow({ account }: { account: AccountRecord }) {
   const [appType, setAppType] = useState<AppType>(account.app_type);
   const [appUrl, setAppUrl] = useState(account.app_url);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // The admin account's type IS the privilege, so auth-service refuses to
+  // change it (403) and refuses "admin" as an input at all (422). Show it
+  // read-only and leave app_type out of the PATCH entirely.
+  const typeIsFixed = account.app_type === "admin";
 
   function cancelEdit() {
     setEditing(false);
@@ -253,7 +257,7 @@ function AccountRow({ account }: { account: AccountRecord }) {
         changes: {
           name: trimmedName,
           description: trimmedDescription,
-          app_type: appType,
+          ...(typeIsFixed ? {} : { app_type: appType }),
           app_url: trimmedUrl,
         },
       });
@@ -317,18 +321,28 @@ function AccountRow({ account }: { account: AccountRecord }) {
               className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <div className="flex flex-col gap-2 sm:flex-row">
-              <select
-                value={appType}
-                onChange={(e) => setAppType(e.target.value as AppType)}
-                aria-label="Application type"
-                className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-40"
-              >
-                {APP_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {APP_TYPE_LABELS[t]}
-                  </option>
-                ))}
-              </select>
+              {typeIsFixed ? (
+                <Badge
+                  variant="secondary"
+                  className="h-8 shrink-0 self-start text-[10px] sm:w-40 sm:justify-center"
+                  title="The administrator account's type cannot be changed."
+                >
+                  {APP_TYPE_LABELS.admin} · fixed
+                </Badge>
+              ) : (
+                <select
+                  value={appType}
+                  onChange={(e) => setAppType(e.target.value as AppType)}
+                  aria-label="Application type"
+                  className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-40"
+                >
+                  {ASSIGNABLE_APP_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {APP_TYPE_LABELS[t]}
+                    </option>
+                  ))}
+                </select>
+              )}
               <input
                 value={appUrl}
                 onChange={(e) => setAppUrl(e.target.value)}

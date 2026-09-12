@@ -40,15 +40,32 @@ export interface TokenResponse {
 
 /** This console's own app account. Sent on every sign-in so auth-service knows
  *  which application the login is for, and can refuse a user who belongs to a
- *  different one. Must match auth-service's AUTH_ADMIN_ACCOUNT_ID.
+ *  different one.
  *
- *  A UUID, not the old "richminds" slug — account IDs are generated now. This
- *  particular one is DERIVED from that slug (auth-service
- *  features/account_ids.py) rather than random, precisely so this constant can
- *  exist: the admin account is created at service startup, and a random ID
- *  would be unknowable to this console until an operator read it out of the
- *  database. */
-export const ADMIN_ACCOUNT_ID = "328dc8a2-c30c-5715-920f-21b963b5ce39";
+ *  CONFIGURED, NOT COMPILED IN. The value lives in this console's .env and
+ *  nowhere else — auth-service itself has no setting for it. What makes an
+ *  account the admin one there is its record's app_type ("admin"), so the
+ *  service never needs to be told the ID; only this console does, because it
+ *  has to name the account from a login form with no session. The ID is
+ *  MINTED by the operator's bootstrap step (auth-service README,
+ *  "Administration"), so it differs per deployment and no built-in default
+ *  could be right. Vite inlines it at BUILD time: changing it means
+ *  restarting the dev server or redeploying.
+ *
+ *  Refuses to boot unconfigured rather than degrade quietly. A missing value
+ *  would not fail — /auth/login without an account_id still signs the user in
+ *  as whichever of their records verifies first — so every sign-in here would
+ *  quietly land in the wrong application and then 403 on the first admin
+ *  call. A blank screen in front of whoever deployed it is the better outcome. */
+const configuredAdminAccountId: string = (import.meta.env.VITE_ADMIN_ACCOUNT_ID ?? "").trim();
+if (!configuredAdminAccountId) {
+  throw new Error(
+    "VITE_ADMIN_ACCOUNT_ID is not set. It names the auth-service admin app account this " +
+      "console signs in under; set it in .env (copy .env.example) to the account_id the " +
+      "operator bootstrap printed.",
+  );
+}
+export const ADMIN_ACCOUNT_ID: string = configuredAdminAccountId;
 
 export interface SignInRequest {
   email: string;
@@ -62,10 +79,19 @@ export interface SignInRequest {
  *  users belong to, and it lives in a different collection entirely. The
  *  `account_id` here is the value the application sends as
  *  `LoginRequest.account_id` when its users sign in. */
-/** Mirrors auth-service's AppType enum — the server validates against the same
- *  closed set, so an option missing here can't be smuggled in either. */
+/** Mirrors auth-service's AppType enum — every value a RECORD can carry. The
+ *  server validates against the same closed set, so an option missing here
+ *  can't be smuggled in either. */
 export const APP_TYPES = ["web", "mobile", "service", "admin", "other"] as const;
 export type AppType = (typeof APP_TYPES)[number];
+
+/** The subset an administrator may ASSIGN. "admin" is left out on purpose: an
+ *  admin-type account is what makes its members administrators, so
+ *  auth-service refuses it on create and update (422) and refuses to change
+ *  the admin account's type at all (403). The one admin account is created by
+ *  the operator bootstrap; this console only ever displays its type. */
+export const ASSIGNABLE_APP_TYPES = ["web", "mobile", "service", "other"] as const satisfies readonly AppType[];
+export type AssignableAppType = (typeof ASSIGNABLE_APP_TYPES)[number];
 
 export const APP_TYPE_LABELS: Record<AppType, string> = {
   web: "Web app",

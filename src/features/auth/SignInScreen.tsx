@@ -8,8 +8,9 @@ import { AuthAlert, AuthCard, AuthLayout, AuthLink, Field, PasswordToggle } from
 
 // Sign-in only: this console administers accounts, it does not create the
 // admin users who administer them. Administrators are defined by membership
-// of auth-service's admin app account (AUTH_ADMIN_ACCOUNT_ID), and sign up
-// through the product they already use.
+// of auth-service's admin app account (the one whose app_type is "admin";
+// this console names it via VITE_ADMIN_ACCOUNT_ID), and sign up through the
+// product they already use.
 //
 // Forgetting a password IS self-service, though — an administrator locked out
 // of this console has no other way back in, since nothing else can reset it
