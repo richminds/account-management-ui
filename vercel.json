@@ -6,7 +6,11 @@
       "destination": "https://api-gateway-two-nu.vercel.app/auth/:path*"
     },
     {
-      "source": "/((?!auth/|v1/).*)",
+      "source": "/api/:path*",
+      "destination": "https://api-gateway-two-nu.vercel.app/api/:path*"
+    },
+    {
+      "source": "/((?!auth/|api/|v1/).*)",
       "destination": "/index.html"
     }
   ]

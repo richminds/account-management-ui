@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { LogOut, Moon, ShieldAlert, Sun, Users } from "lucide-react";
+import { Activity, AppWindow, LogOut, Moon, ShieldAlert, Sun, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,8 +9,23 @@ import { useAuth } from "@/features/auth/auth-context";
 import { selectedAccount } from "@/features/auth/auth-types";
 import { AuthScreen, readResetToken } from "@/features/auth/AuthScreen";
 import { AccountsPage } from "@/features/accounts/AccountsPage";
+import { LlmUsagePage } from "@/features/llm-usage/LlmUsagePage";
 
 const THEME_KEY = "account-management-theme";
+
+// The console's sections. Kept in the URL hash rather than only in state so
+// a reload (or a shared link) lands on the same tab; no router needed for
+// two views.
+const TABS = [
+  { id: "applications", label: "Applications", icon: AppWindow },
+  { id: "llm-usage", label: "LLM usage", icon: Activity },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
+
+function readTab(): TabId {
+  const fromHash = window.location.hash.replace(/^#/, "");
+  return TABS.some((t) => t.id === fromHash) ? (fromHash as TabId) : "applications";
+}
 
 function getInitialTheme(): "light" | "dark" {
   const stored = localStorage.getItem(THEME_KEY);
@@ -24,11 +40,18 @@ export default function App() {
   // the URL after a reset, and re-reading would then flip the screen away
   // mid-flow.
   const [resetToken] = useState(readResetToken);
+  const [tab, setTab] = useState<TabId>(readTab);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  useEffect(() => {
+    const onHashChange = () => setTab(readTab());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   // Before the session check on purpose: a reset link is just as likely to be
   // opened by someone who still has a live session (that is often WHY they are
@@ -92,9 +115,48 @@ export default function App() {
       </header>
 
       <main className="mx-auto w-full max-w-[1400px] px-6 py-6">
-        {user.is_admin ? <AccountsPage /> : <NotAdmin />}
+        {user.is_admin ? (
+          <div className="space-y-5">
+            <NavTabs active={tab} onChange={(id) => (window.location.hash = id)} />
+            {tab === "llm-usage" ? <LlmUsagePage /> : <AccountsPage />}
+          </div>
+        ) : (
+          <NotAdmin />
+        )}
       </main>
     </div>
+  );
+}
+
+function NavTabs({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {
+  return (
+    <nav
+      role="tablist"
+      aria-label="Console sections"
+      className="mx-auto flex w-full max-w-5xl gap-1 border-b border-border/60"
+    >
+      {TABS.map(({ id, label, icon: Icon }) => {
+        const selected = id === active;
+        return (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(id)}
+            className={cn(
+              "-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              selected
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 

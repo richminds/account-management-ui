@@ -9,14 +9,20 @@ import path from "node:path";
 // /auth/* to the gateway too), and that symmetry is the point: a dev server
 // that bypassed it would exercise a path production does not have.
 //
+// The LLM usage tab reads llm-gateway the same way: /api/llm/* is the
+// gateway's route to it, and the gateway is what turns the console's bearer
+// token into the X-User-ID / X-Is-Admin headers llm-gateway's admin routes
+// require. Calling llm-gateway directly would get a 401 from it.
+//
 // Two ways to choose the backend, and they are not interchangeable:
 //
-//   GATEWAY_PROXY_TARGET where this dev server forwards /auth/* (default: a
-//                        local API gateway on :8000, which routes /auth to
-//                        auth-service). The browser only ever talks to this
-//                        dev server, so the hop to the target is server-side
-//                        and CORS does not apply. Point it at a deployed
-//                        gateway to develop against real accounts.
+//   GATEWAY_PROXY_TARGET where this dev server forwards /auth/* and /api/*
+//                        (default: a local API gateway on :8000, which routes
+//                        /auth to auth-service and /api/llm to llm-gateway).
+//                        The browser only ever talks to this dev server, so
+//                        the hop to the target is server-side and CORS does
+//                        not apply. Point it at a deployed gateway to develop
+//                        against real accounts.
 //
 //   VITE_AUTH_BASE_URL   baked into the bundle as an absolute base URL, so
 //                        the browser calls that host directly. Needed when
@@ -47,6 +53,12 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           // Verify TLS when the target is https — it is a real deployment,
           // not a self-signed dev box.
+          secure: true,
+        },
+        // Same gateway, its routed upstreams (/api/llm → llm-gateway).
+        "/api": {
+          target: authTarget,
+          changeOrigin: true,
           secure: true,
         },
       },
