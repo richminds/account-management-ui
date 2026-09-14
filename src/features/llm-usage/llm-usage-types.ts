@@ -50,7 +50,13 @@ export interface AccountUsage extends UsageTotals {
   account_id: string;
 }
 
+/** One row per (account, user): a person who acted for two accounts is two
+ *  rows, which is what lets the table say who under EACH account used the
+ *  gateway. Sorted by account, then cost, so one account's people sit
+ *  together. */
 export interface UserUsage extends UsageTotals {
+  /** "" is traffic that arrived with no X-Account-ID. */
+  account_id: string;
   /** "" is traffic that recorded no user (in-process callers, old rows). */
   user_id: string;
   /** Display labels the gateway sent with the id; may be "". */

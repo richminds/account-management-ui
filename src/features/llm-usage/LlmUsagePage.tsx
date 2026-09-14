@@ -251,22 +251,49 @@ export function LlmUsagePage() {
                 <BreakdownTable
                   rows={usage.byAccount.data ?? []}
                   keyOf={(r) => r.account_id}
-                  head="Account"
-                  cell={(r: AccountUsage) => <AccountCell id={r.account_id} name={accountName(r.account_id)} />}
+                  columns={[
+                    {
+                      head: "Account",
+                      cell: (r: AccountUsage) => (
+                        <AccountCell id={r.account_id} name={accountName(r.account_id)} />
+                      ),
+                    },
+                  ]}
                 />
               </Section>
 
               <Section
                 title="By user"
-                subtitle="Who made the calls, as authenticated by the API gateway"
+                subtitle={
+                  accountId
+                    ? "Who in this account made the calls, as authenticated by the API gateway"
+                    : "Who made the calls, under which account — one row per person per account"
+                }
               >
                 <BreakdownTable
                   rows={usage.byUser.data ?? []}
-                  keyOf={(r) => r.user_id}
-                  head="User"
-                  cell={(r: UserUsage) => (
-                    <UserCell id={r.user_id} email={r.user_email} name={r.user_name} />
-                  )}
+                  // One person can act for several accounts; the pair is the row.
+                  keyOf={(r) => `${r.account_id} / ${r.user_id}`}
+                  columns={[
+                    // With one account selected every row would repeat it —
+                    // the column only earns its width across accounts.
+                    ...(accountId
+                      ? []
+                      : [
+                          {
+                            head: "Account",
+                            cell: (r: UserUsage) => (
+                              <AccountCell id={r.account_id} name={accountName(r.account_id)} />
+                            ),
+                          },
+                        ]),
+                    {
+                      head: "User",
+                      cell: (r: UserUsage) => (
+                        <UserCell id={r.user_id} email={r.user_email} name={r.user_name} />
+                      ),
+                    },
+                  ]}
                 />
               </Section>
 
@@ -411,30 +438,39 @@ function ModelTable({ rows }: { rows: ModelUsage[] }) {
   );
 }
 
+/** The dimension(s) a breakdown is grouped by, then the shared totals. One
+ *  column for the account table; account + user for the user table, whose
+ *  rows are (account, person) pairs. */
 function BreakdownTable<T extends UsageTotals>({
   rows,
   keyOf,
-  head,
-  cell,
+  columns,
 }: {
   rows: T[];
   keyOf: (row: T) => string;
-  head: string;
-  cell: (row: T) => ReactNode;
+  columns: { head: string; cell: (row: T) => ReactNode }[];
 }) {
   return (
     <table className="w-full text-xs">
       <thead>
         <tr className="border-b border-border">
-          <th className={TH}>{head}</th>
+          {columns.map((c) => (
+            <th key={c.head} className={TH}>
+              {c.head}
+            </th>
+          ))}
           <TotalsHead />
         </tr>
       </thead>
       <tbody>
-        {rows.length === 0 && <EmptyRow colSpan={TOTALS_COLS + 1} />}
+        {rows.length === 0 && <EmptyRow colSpan={TOTALS_COLS + columns.length} />}
         {rows.map((r) => (
           <tr key={keyOf(r) || "∅"} className="border-b border-border/50 last:border-0">
-            <td className={cn(TD, "max-w-64")}>{cell(r)}</td>
+            {columns.map((c) => (
+              <td key={c.head} className={cn(TD, "max-w-64")}>
+                {c.cell(r)}
+              </td>
+            ))}
             <TotalsCells row={r} />
           </tr>
         ))}
